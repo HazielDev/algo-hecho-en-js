@@ -1,6 +1,6 @@
-class PointsService {
-  constructor() {
-    this.points = [];
+class pointsService {
+  constructor(points) {
+    this.points = points;
   }
 
   getAll() {
