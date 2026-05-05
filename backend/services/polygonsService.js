@@ -1,6 +1,6 @@
 class polygonsService {
-  constructor() {
-    this.polygons = [];
+  constructor(polygons) {
+    this.polygons = polygons;
   }
 
   getAll() {

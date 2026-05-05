@@ -1,4 +1,4 @@
-const { version } = require('react');
+
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 

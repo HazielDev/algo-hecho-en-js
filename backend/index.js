@@ -1,5 +1,6 @@
 const express = require('express');
 const setupSwagger = require('./swagger')
+const routerApi = require('./routes/rutas')
 
 const { logErrors, errorHandler } = require('./middlewares/errorHandler')
 

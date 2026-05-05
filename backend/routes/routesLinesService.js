@@ -17,7 +17,7 @@ router.post('/', (req, res) => {
   res.status(201).json({ message: 'Route created' });
 })
 
-router.patch(':/id', (req, res) => {
+router.patch('/:id', (req, res) => {
   const { id } = req.params;
   const { name, coordinates } = req.body;
   const route = service.update(id, name, coordinates);
@@ -28,7 +28,7 @@ router.patch(':/id', (req, res) => {
   }
 })
 
-router.delete(':/id', (req, res) => {
+router.delete('/:id', (req, res) => {
   const { id } = req.params;
   const route = service.delete(id);
   if (route) {

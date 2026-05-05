@@ -18,7 +18,7 @@ router.post('/', (req, res) => {
   res.status(201).json({ message: 'Point created' });
 })
 
-router.patch(':/id', (req, res) => {
+router.patch('/:id', (req, res) => {
   const { id } = req.params;
   const { name, description, lat, lng } = req.body;
   const point = service.update(id, name, description, lat, lng);
@@ -29,7 +29,7 @@ router.patch(':/id', (req, res) => {
   }
 })
 
-router.delete(':/id', (req, res) => {
+router.delete('/:id', (req, res) => {
   const { id } = req.params;
   const point = service.delete(id);
   if (point) {
