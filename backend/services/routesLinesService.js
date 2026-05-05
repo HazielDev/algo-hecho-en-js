@@ -1,6 +1,6 @@
 class routesLinesService {
-  constructor() {
-    this.routesLines = [];
+  constructor(routesLines) {
+    this.routesLines = routesLines;
   }
 
   getAll() {
