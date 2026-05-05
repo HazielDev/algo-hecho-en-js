@@ -102,4 +102,6 @@ class data{
   }
 }
 
-module.exports = data;
+const dataInfo = new data();
+
+module.exports = dataInfo;

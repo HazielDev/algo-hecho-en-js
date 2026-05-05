@@ -1,4 +1,4 @@
-const { version } = require('react');
+
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 
@@ -18,10 +18,12 @@ const swaggerDefinition = {
   ]
 }
 
+const path = require('path');
+
 const options = {
   swaggerDefinition,
-  // Path to files
-  apis : ['./routes/*.js']
+  // Path to files (usando path.join para que funcione sin importar desde dónde se ejecute nodemon)
+  apis : [path.join(__dirname, './routes/*.js')]
 }
 
 const swaggerSpec = swaggerJSDoc(options);

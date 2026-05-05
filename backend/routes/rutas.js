@@ -1,5 +1,5 @@
 const pointsRouter = require('./pointsRoutes')
-const routesLinesRouter = require('./routesLinesService')
+const routesLinesRouter = require('./routesLinesRoutes')
 const polygonsRouter = require('./polygonsRoutes')
 
 function routerApi(app) {

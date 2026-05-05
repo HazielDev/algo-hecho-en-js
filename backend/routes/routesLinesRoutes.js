@@ -1,20 +1,20 @@
-const express = require("express");
-const data = require("../data/data");
-const polygonsService = require("../services/polygonsService");
+const express = require("express")
+const data = require("../data/data")
+const routesLinesService = require("../services/routesLinesService");
 
 const router = express.Router();
 
-const service = new polygonsService(data.polygons);
+const service = new routesLinesService(data.routesLines);
 
 /**
  * @swagger
- * /polygons:
+ * /routes-lines:
  *   get:
- *     tags: [Polygons]
- *     summary: Get all polygons
+ *     tags: [Routes Lines]
+ *     summary: Get all routes lines
  *     responses:
  *       200:
- *         description: A list of polygons
+ *         description: A list of routes lines
  *         content:
  *           application/json:
  *             schema:
@@ -24,26 +24,26 @@ const service = new polygonsService(data.polygons);
  *                 properties:
  *                   id:
  *                     type: string
- *                     description: The ID of the polygon
+ *                     description: The ID of the route line
  *                   name:
  *                     type: string
- *                     description: The name of the polygon
+ *                     description: The name of the route line
  *                   coordinates:
  *                     type: array
- *                     description: The coordinates of the polygon
+ *                     description: The coordinates of the route line
  */
-
 router.get('/', (req, res) => {
-  const polygons = service.getAll();
-  res.status(200).json(polygons);
+  const routesLines = service.getAll();
+  res.status(200).json(routesLines);
 })
+
 
 /**
  * @swagger
- * /polygons:
+ * /routes-lines:
  *   post:
- *     tags: [Polygons]
- *     summary: Create a new polygon
+ *     tags: [Routes Lines]
+ *     summary: Create a new route line
  *     requestBody:
  *       required: true
  *       content:
@@ -53,34 +53,33 @@ router.get('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the polygon
+ *                 description: The name of the route line
  *               coordinates:
  *                 type: array
- *                 description: The coordinates of the polygon
+ *                 description: The coordinates of the route line
  *     responses:
  *       201:
- *         description: Polygon created successfully
+ *         description: Route line created successfully
  */
-
 router.post('/', (req, res) => {
   const { name, coordinates } = req.body;
   service.create(name, coordinates);
-  res.status(201).json({ message: 'Polygon created' });
+  res.status(201).json({ message: 'Route created' });
 })
 
 /**
  * @swagger
- * /polygons/{id}:
+ * /routes-lines/{id}:
  *   patch:
- *     tags: [Polygons]
- *     summary: Update a polygon
+ *     tags: [Routes Lines]
+ *     summary: Update a route line
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The ID of the polygon to update
+ *         description: The ID of the route line to update
  *     requestBody:
  *       required: true
  *       content:
@@ -90,50 +89,49 @@ router.post('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the polygon
+ *                 description: The name of the route line
  *               coordinates:
  *                 type: array
- *                 description: The coordinates of the polygon
+ *                 description: The coordinates of the route line
  *     responses:
  *       200:
- *         description: Polygon updated successfully
+ *         description: Route line updated successfully
  */
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
   const { name, coordinates } = req.body;
-  const polygon = service.update(id, name, coordinates);
-  if (polygon) {
-    res.status(200).json({ message: 'Polygon updated' });
+  const route = service.update(id, name, coordinates);
+  if (route) {
+    res.status(200).json({ message: 'Route updated' });
   } else {
-    res.status(404).json({ message: 'Polygon not found' });
+    res.status(404).json({ message: 'Route not found' });
   }
 })
 
 /**
  * @swagger
- * /polygons/{id}:
+ * /routes-lines/{id}:
  *   delete:
- *     tags: [Polygons]
- *     summary: Delete a polygon
+ *     tags: [Routes Lines]
+ *     summary: Delete a route line
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The ID of the polygon to delete
+ *         description: The ID of the route line to delete
  *     responses:
  *       200:
- *         description: Polygon deleted successfully
+ *         description: Route line deleted successfully
  */
-
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
-  const polygon = service.delete(id);
-  if (polygon) {
-    res.status(200).json({ message: 'Polygon deleted' });
+  const route = service.delete(id);
+  if (route) {
+    res.status(200).json({ message: 'Route deleted' });
   } else {
-    res.status(404).json({ message: 'Polygon not found' });
+    res.status(404).json({ message: 'Route not found' });
   }
 })
 

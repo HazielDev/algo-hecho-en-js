@@ -37,4 +37,4 @@ class pointsService {
   }
 }
 
-module.exports = PointsService;
+module.exports = pointsService;
