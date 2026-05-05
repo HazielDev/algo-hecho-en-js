@@ -1,7 +1,7 @@
 class data{
   constructor() {
     this.points = [];
-    this.routes_lines = [];
+    this.routesLines = [];
     this.polygons = [];
 
     this.generate();
@@ -97,7 +97,7 @@ class data{
     ]
 
     this.points.push(...new_points);
-    this.routes_lines.push(...new_routes_lines);
+    this.routesLines.push(...new_routes_lines);
     this.polygons.push(...new_polygons);
   }
 }

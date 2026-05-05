@@ -36,3 +36,5 @@ class PointsService {
     return true;
   }
 }
+
+module.exports = PointsService;
