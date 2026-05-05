@@ -8,9 +8,11 @@ const port = 3000;
 
 app.use(express.json());
 
+routerApi(app);
 setupSwagger(app);
 app.use(logErrors)
 app.use(errorHandler)
+
 
 app.listen(port, () => {
   console.log('Server running on port ' + port);
