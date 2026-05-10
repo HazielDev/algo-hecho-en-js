@@ -6,8 +6,9 @@
      * - activeTab: 'points', 'routes' o 'polygons'
      * - onSubmit: Función para guardar el nuevo registro
      * - editingItem: Objeto si estamos editando, null si estamos creando
+     * - mapCoords: Coordenadas capturadas desde el mapa {lat, lng}
      */
-    let { activeTab, onSubmit, editingItem = null } = $props();
+    let { activeTab, onSubmit, editingItem = null, mapCoords = null } = $props();
 
     // Estado local para los campos del formulario
     let name = $state('');
@@ -33,6 +34,24 @@
             coordinates = editingItem.coordinates ? [...editingItem.coordinates] : [];
         } else {
             resetForm();
+        }
+    });
+
+    /**
+     * Efecto que reacciona a los clicks en el mapa para capturar coordenadas
+     */
+    $effect(() => {
+        if (mapCoords) {
+            if (activeTab === 'points') {
+                // Si es un punto, actualizamos la lat/lng principal
+                lat = mapCoords.lat;
+                lng = mapCoords.lng;
+            } else {
+                // Si es ruta o polígono, llenamos los campos de 'Nuevo Punto' 
+                // para que el usuario revise y le de al botón de '+'
+                newLat = mapCoords.lat;
+                newLng = mapCoords.lng;
+            }
         }
     });
 
@@ -234,36 +253,40 @@
 
   .coords-list {
     margin-top: 15px;
-    max-height: 150px;
+    max-height: 200px;
     overflow-y: auto;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 10px;
     background: rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #e2e8f0;
   }
 
   .empty-list-text {
+    grid-column: span 2;
     width: 100%;
     text-align: center;
     font-size: 12px;
     color: #94a3b8;
     margin: 0;
+    padding: 20px 0;
     font-style: italic;
   }
 
   .coord-tag {
     background: #e2e8f0;
     color: #475569;
-    padding: 6px 10px;
+    padding: 8px 10px;
     border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 6px;
+    border: 1px solid #cbd5e1;
   }
 
   .btn-remove-coord {

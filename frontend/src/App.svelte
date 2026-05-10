@@ -10,6 +10,9 @@
   let polygons = $state([]);
   let routesLines = $state([]);
   let loading = $state(true);
+  
+  // Estado para capturar el último click en el mapa
+  let lastClickedCoords = $state(null);
 
   // State to control where the map is looking
   let mapTarget = $state({
@@ -18,6 +21,10 @@
     zoom: 13,
     timestamp: Date.now() // To force update even if coordinates are same
   });
+
+  function handleMapClick(lat, lng) {
+    lastClickedCoords = { lat, lng, timestamp: Date.now() };
+  }
 
   function centerMap(lat, lng, zoom = 16) {
     mapTarget = { lat, lng, zoom, timestamp: Date.now() };
@@ -51,11 +58,18 @@
     {polygons} 
     {routesLines} 
     {loading}
+    mapCoords={lastClickedCoords}
     onUpdate={fetchAll}
     onSelect={centerMap}
   />
   <div class="map-section">
-    <Map {points} {polygons} {routesLines} target={mapTarget} />
+    <Map 
+      {points} 
+      {polygons} 
+      {routesLines} 
+      target={mapTarget} 
+      onMapClick={handleMapClick}
+    />
   </div>
 </main>
 

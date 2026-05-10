@@ -25,6 +25,7 @@
         polygons = [], 
         routesLines = [], 
         loading = false,
+        mapCoords = null,
         onUpdate,
         onSelect
     } = $props();
@@ -52,7 +53,7 @@
                 if (activeTab === 'points') {
                     await createPoint(data);
                 } else if (activeTab === 'routes') {
-                    if (coordinatesLength < 2) return alert('Una ruta ocupa mínimo 2 puntos, compa');
+                    if (coordinatesLength < 2) return alert('Una ruta ocupa mínimo 2 puntos');
                     await createRouteLine(data);
                 } else if (activeTab === 'polygons') {
                     if (coordinatesLength < 3) return alert('Un polígono ocupa mínimo 3 puntos para que cierre');
@@ -76,8 +77,6 @@
      */
     function handleEditItem(item) {
         editingItem = item;
-        // Opcionalmente centrar el mapa al empezar a editar
-        handleSelectItem(item);
     }
 
     /**
@@ -148,6 +147,7 @@
                 {activeTab} 
                 onSubmit={handleSave}
                 {editingItem}
+                {mapCoords}
             />
 
             <!-- Lista de registros guardados -->
@@ -174,7 +174,7 @@
     top: 10px;
     right: 10px;
     bottom: 10px;
-    width: 380px;
+    width: 420px;
     z-index: 9999;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);

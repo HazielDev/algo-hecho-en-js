@@ -8,6 +8,7 @@
    * - zoom: Nivel de zoom inicial
    * - points, polygons, routesLines: Listas de elementos a dibujar
    * - target: Objeto {lat, lng, zoom} usado para re-centrar el mapa desde el menú
+   * - onMapClick: Función callback que se activa al hacer click en el mapa
    */
   let { 
     center = [21.121128451058443, -101.68301558244039], 
@@ -15,7 +16,8 @@
     points = [],
     polygons = [],
     routesLines = [],
-    target = null
+    target = null,
+    onMapClick
   } = $props();
 
   let mapContainer: any;
@@ -39,6 +41,15 @@
 
     // Inicializar el grupo de capas donde dibujaremos nuestros objetos
     layers.addTo(mapInstance);
+
+    /**
+     * Click Normal (Izquierdo):
+     * Captura las coordenadas y las manda al componente padre (AsideMenu)
+     */
+    mapInstance.on('click', (e: any) => {
+        const { lat, lng } = e.latlng;
+        if (onMapClick) onMapClick(lat, lng);
+    });
 
     /**
      * Funcionalidad de Click Derecho:
