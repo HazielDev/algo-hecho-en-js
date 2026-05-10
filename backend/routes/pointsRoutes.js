@@ -1,10 +1,12 @@
 const express = require("express")
 
+// Importación de datos y servicio
 const data = require("../data/data")
 const pointsService = require("../services/pointsService");
 
 const router = express.Router();
 
+// Inicialización del servicio con los datos actuales
 const service = new pointsService(data.points);
 
 /**
@@ -24,7 +26,7 @@ const service = new pointsService(data.points);
  *                 type: object
  *                 properties:
  *                   id:
- *                     type: string
+ *                     type: integer
  *                     description: The ID of the point
  *                   name:
  *                     type: string
@@ -38,8 +40,14 @@ const service = new pointsService(data.points);
  *                   lng:
  *                     type: number
  *                     description: The longitude of the point
+ *                   active:
+ *                     type: boolean
+ *                     description: The active status of the point
  */
 
+/**
+ * Ruta para obtener todos los puntos guardados
+ */
 router.get('/', (req, res) => {
   const points = service.getAll();
   res.status(200).json(points);
@@ -74,10 +82,13 @@ router.get('/', (req, res) => {
  *       201:
  *         description: Point created successfully
  */
+/**
+ * Ruta para crear un nuevo punto
+ */
 router.post('/', (req, res) => {
   const { name, description, lat, lng } = req.body;
   service.create(name, description, lat, lng);
-  res.status(201).json({ message: 'Point created' });
+  res.status(201).json({ message: 'Punto creado exitosamente' });
 })
 
 /**
@@ -115,15 +126,20 @@ router.post('/', (req, res) => {
  *     responses:
  *       200:
  *         description: Point updated successfully
+ *       404:
+ *         description: Point not found
+ */
+/**
+ * Ruta para actualizar un punto existente por su ID
  */
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
   const { name, description, lat, lng } = req.body;
   const point = service.update(id, name, description, lat, lng);
   if (point) {
-    res.status(200).json({ message: 'Point updated' });
+    res.status(200).json({ message: 'Punto actualizado' });
   } else {
-    res.status(404).json({ message: 'Point not found' });
+    res.status(404).json({ message: 'Punto no encontrado' });
   }
 })
 
@@ -143,14 +159,19 @@ router.patch('/:id', (req, res) => {
  *     responses:
  *       200:
  *         description: Point deleted successfully
+ *       404:
+ *         description: Point not found
+ */
+/**
+ * Ruta para eliminar un punto por su ID
  */
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
   const point = service.delete(id);
   if (point) {
-    res.status(200).json({ message: 'Point deleted' });
+    res.status(200).json({ message: 'Punto eliminado' });
   } else {
-    res.status(404).json({ message: 'Point not found' });
+    res.status(404).json({ message: 'Punto no encontrado' });
   }
 })
 
