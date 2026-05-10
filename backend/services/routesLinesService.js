@@ -11,7 +11,8 @@ class routesLinesService {
     const newRoute = {
       id: this.routesLines.length + 1,
       name,
-      coordinates
+      coordinates,
+      active: true
     }
     this.routesLines.push(newRoute);
   }
@@ -20,16 +21,16 @@ class routesLinesService {
     const index = this.routesLines.findIndex(item => item.id == id);
     if (index == -1) return null;
     const route = this.routesLines[index];
-    route.name = name || route.name;
-    route.coordinates = coordinates || route.coordinates;
+    route.name = name ?? route.name;
+    route.coordinates = coordinates ?? route.coordinates;
     return route;
   }
 
   delete(id) {
     const index = this.routesLines.findIndex(item => item.id == id);
     if (index == -1) return null;
-    this.routesLines.splice(index, 1);
-    return true;
+    this.routesLines[index].active = !this.routesLines[index].active;
+    return this.routesLines[index];
   }
 }
 

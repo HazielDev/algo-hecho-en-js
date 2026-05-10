@@ -14,35 +14,40 @@ class data{
         "name": "Casa Benito",
         "description": "La casa del buen Benito",
         "lat": 21.155087705821174, 
-        "lng": -101.68840950251052
+        "lng": -101.68840950251052,
+        "active": true
       },
       {
         "id":2,
         "name": "Casa de Pablo",
         "description": "La casa del Pablo Emilio Escobar Gaviria",
         "lat": 21.131415544339916, 
-        "lng":-101.61574087183952
+        "lng":-101.61574087183952,
+        "active": true
       },
       {
         "id":3,
         "name": "Universidad la Salle",
         "description": "La universidad la salle bajío campus campestre",
         "lat": 21.152378563644284, 
-        "lng": -101.71140343436767
+        "lng": -101.71140343436767,
+        "active": true
       },
       {
         "id":4,
         "name": "Altacia",
         "description": "Centro Comercial Altacia",
         "lat": 21.092868090610075, 
-        "lng":-101.62609468189275
+        "lng":-101.62609468189275,
+        "active": true
       },
       {
         "id":5,
         "name": "Plaza Mayor",
         "description": "Centro Comercial Plaza Mayor",
         "lat": 21.157906789447114, 
-        "lng": -101.69518067506645
+        "lng": -101.69518067506645,
+        "active": true
       }
     ]
 
@@ -55,7 +60,8 @@ class data{
           { "lat": 21.131207599392308, "lng":-101.61580426173174 },
           { "lat": 21.130973854244953, "lng":-101.61600326419112 },
           { "lat": 21.130473854244953, "lng":-101.61600326419112 }
-        ]
+        ],
+        "active": true
       },
       {
         "id": 2,
@@ -63,7 +69,8 @@ class data{
         "coordinates": [
           { "lat": 21.17279313758006, "lng":-101.68676590102586 },
           { "lat": 21.16990022333479, "lng": -101.68599005122115 }
-        ]
+        ],
+        "active": true
       }
     ]
 
@@ -74,7 +81,8 @@ class data{
         "coordinates": [
           { "lat": 21.15876187355741, "lng": -101.69889428535279 },
           { "lat": 21.15876187355741, "lng": -101.69647508980771 }
-        ]
+        ],
+        "active": true
       },
       {
         "id": 2,
@@ -82,7 +90,8 @@ class data{
         "coordinates": [
           { "lat": 21.152378563644284, "lng": -101.71140343436767 },
           { "lat": 21.152378563644284, "lng": -101.71140343436767 }
-        ]
+        ],
+        "active": true
       },
       {
         "id": 3,
@@ -92,7 +101,8 @@ class data{
           { "lat": 21.126074630716508, "lng": -101.65694627979624 },
           { "lat": 21.126074630716508, "lng": -101.65694627979624 },
           { "lat": 21.126074630716508, "lng": -101.65694627979624 }
-        ]
+        ],
+        "active": true
       }
     ]
 

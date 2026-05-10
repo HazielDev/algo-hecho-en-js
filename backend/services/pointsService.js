@@ -13,7 +13,8 @@ class pointsService {
       name,
       description,
       lat,
-      lng
+      lng,
+      active: true
     }
     this.points.push(new_point)
   }
@@ -22,18 +23,18 @@ class pointsService {
     const index = this.points.findIndex(item => item.id == id);
     if (index == -1) return null;
     const point = this.points[index];
-    point.name = name || point.name;
-    point.description = description || point.description;
-    point.lat = lat || point.lat;
-    point.lng = lng || point.lng;
+    point.name = name ?? point.name;
+    point.description = description ?? point.description;
+    point.lat = lat ?? point.lat;
+    point.lng = lng ?? point.lng;
     return point;
   }
 
   delete(id) {
     const index = this.points.findIndex(item => item.id == id);
     if (index == -1) return null;
-    this.points.splice(index, 1);
-    return true;
+    this.points[index].active = !this.points[index].active;
+    return this.points[index];
   }
 }
 
