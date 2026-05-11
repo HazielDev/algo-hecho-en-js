@@ -15,7 +15,8 @@ class data{
         "description": "La casa del buen Benito",
         "lat": 21.155087705821174, 
         "lng": -101.68840950251052,
-        "active": true
+        "active": true,
+        "category": "hogar"
       },
       {
         "id":2,
@@ -23,7 +24,8 @@ class data{
         "description": "La casa del Pablo Emilio Escobar Gaviria",
         "lat": 21.131415544339916, 
         "lng":-101.61574087183952,
-        "active": true
+        "active": true,
+        "category": "hogar"
       },
       {
         "id":3,
@@ -31,7 +33,8 @@ class data{
         "description": "La universidad la salle bajío campus campestre",
         "lat": 21.152378563644284, 
         "lng": -101.71140343436767,
-        "active": true
+        "active": true,
+        "category": "educacion"
       },
       {
         "id":4,
@@ -39,7 +42,8 @@ class data{
         "description": "Centro Comercial Altacia",
         "lat": 21.092868090610075, 
         "lng":-101.62609468189275,
-        "active": true
+        "active": true,
+        "category": "comercio"
       },
       {
         "id":5,
@@ -47,7 +51,8 @@ class data{
         "description": "Centro Comercial Plaza Mayor",
         "lat": 21.157906789447114, 
         "lng": -101.69518067506645,
-        "active": true
+        "active": true,
+        "category": "comercio"
       }
     ]
 
@@ -55,6 +60,7 @@ class data{
       {
         "id": 1,
         "name": "Ruta de casa Pablo a casa Benito",
+        "category": "privada",
         "coordinates": [
           { "lat": 21.131415544339916, "lng": -101.61574087183952 },
           { "lat": 21.131207599392308, "lng": -101.61580426173174 },
@@ -135,6 +141,7 @@ class data{
       {
         "id": 2,
         "name": "Metropolitano a la Feria",
+        "category": "publica",
         "coordinates": [
           { "lat": 21.17279313758006, "lng": -101.68676590102586 },
           { "lat": 21.16990022333479, "lng": -101.68599005122115 },
@@ -170,6 +177,7 @@ class data{
       {
         "id": 3,
         "name": "La Salle a Plaza Mayor",
+        "category": "publica",
         "coordinates": [
           { "lat": 21.153997, "lng": -101.711887 },
           { "lat": 21.154788, "lng": -101.709763 },
@@ -197,6 +205,7 @@ class data{
       {
         "id": 1,
         "name": "Costco Plaza Mayor",
+        "category": "comercio",
         "coordinates": [
           { "lat": 21.15892, "lng": -101.707392 },
           { "lat": 21.15872, "lng": -101.706201 },
@@ -217,6 +226,7 @@ class data{
       {
         "id": 2,
         "name": "Universidad La Salle Bajio Campestre",
+        "category": "educacion",
         "coordinates": [
           { "lat": 21.154567, "lng": -101.710248 },
           { "lat": 21.152356, "lng": -101.709318 },
@@ -243,6 +253,7 @@ class data{
       {
         "id": 3,
         "name": "Estadio León",
+        "category": "deporte",
         "coordinates": [
           { "lat": 21.116711, "lng": -101.658066 },
           { "lat": 21.116385, "lng": -101.657352 },

@@ -1,69 +1,111 @@
 <script>
-    import { MapPinIcon, Menu, XIcon } from 'lucide-svelte';
+    /**
+     * AsideMenu.svelte: Controlador del menú lateral derecho.
+     * Gestiona el estado de las pestañas, la edición de elementos y las funciones de importación/exportación.
+     */
+    import { MapPinIcon, Menu, XIcon, Download, Upload } from 'lucide-svelte';
     
-    // Importación de componentes locales (Refactorización)
+    // Sub-componentes del menú
     import TabNavigation from './menu/TabNavigation.svelte';
     import CreateForm from './menu/CreateForm.svelte';
     import SavedItemsList from './menu/SavedItemsList.svelte';
 
-    // Importación de servicios para interactuar con el backend
+    // Servicios de comunicación con la API
     import { createPoint, deletePoint, updatePoint } from '../../services/pointsService';
     import { createPolygon, deletePolygon, updatePolygon } from '../../services/polygonsService';
     import { createRouteLine, deleteRouteLine, updateRouteLine } from '../../services/routesLinesService';
 
-    /**
-     * Props recibidas desde App.svelte:
-     * - open: Estado del menú (abierto/cerrado)
-     * - points, polygons, routesLines: Datos traídos del backend
-     * - loading: Indica si el backend está respondiendo
-     * - onUpdate: Función para refrescar los datos generales
-     * - onSelect: Función para centrar el mapa en un punto
-     */
+    // PROPS (Entradas de datos del componente)
     let { 
-        open = $bindable(true), 
-        points = [], 
-        polygons = [], 
-        routesLines = [], 
-        loading = false,
-        mapCoords = null,
-        onUpdate,
-        onSelect
+        open = $bindable(true),   // Controla si el menú está visible u oculto
+        points = [],              // Datos de puntos desde App.svelte
+        polygons = [],            // Datos de polígonos
+        routesLines = [],         // Datos de rutas
+        loading = false,          // Estado de carga del backend
+        mapCoords = null,         // Coordenadas recibidas por click en mapa
+        drawnPath = null,         // Ruta recibida por dibujo libre
+        onUpdate,                 // Función callback para refrescar datos
+        onSelect                  // Función callback para centrar mapa
     } = $props();
 
-    // Estado reactivo para controlar qué pestaña está activa
-    let activeTab = $state('points'); 
-    
-    // Estado para saber si estamos editando un elemento existente
-    let editingItem = $state(null);
+    /**
+     * EXPORTAR A JSON: Genera un archivo descargable con el estado actual del mapa.
+     */
+    function downloadJSON() {
+        const dataToExport = { points, routesLines, polygons };
+        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'geomanager_json.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 
     /**
-     * Maneja el guardado de nuevos registros o actualización de existentes.
-     * Esta función se pasa al componente 'CreateForm'.
+     * IMPORTAR JSON: Lee un archivo del usuario e inserta cada elemento en el backend.
+     */
+    async function handleImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                let count = 0;
+
+                // Procesamiento secuencial de cada tipo de dato
+                if (importedData.points) {
+                    for (const p of importedData.points) { await createPoint(p); count++; }
+                }
+                if (importedData.routesLines) {
+                    for (const r of importedData.routesLines) { await createRouteLine(r); count++; }
+                }
+                if (importedData.polygons) {
+                    for (const poly of importedData.polygons) { await createPolygon(poly); count++; }
+                }
+
+                alert(`¡Éxito! Se importaron ${count} elementos.`);
+                if (onUpdate) await onUpdate(); // Refrescar listas después de importar
+            } catch (err) {
+                alert("Error al procesar el JSON: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // ESTADO LOCAL DEL MENÚ
+    let activeTab = $state('points');  // Pestaña seleccionada (points, routes, polygons)
+    let editingItem = $state(null);    // Objeto que se está editando actualmente (null = modo creación)
+
+    /**
+     * GUARDAR: Maneja tanto la creación (POST) como la actualización (PATCH)
      */
     async function handleSave(data, coordinatesLength) {
         try {
             if (editingItem) {
-                // Modo EDICIÓN (PATCH)
+                // Modo EDICIÓN
                 if (activeTab === 'points') await updatePoint(editingItem.id, data);
                 else if (activeTab === 'routes') await updateRouteLine(editingItem.id, data);
                 else if (activeTab === 'polygons') await updatePolygon(editingItem.id, data);
                 alert('¡Actualizado con éxito!');
             } else {
-                // Modo CREACIÓN (POST)
-                if (activeTab === 'points') {
-                    await createPoint(data);
-                } else if (activeTab === 'routes') {
+                // Modo CREACIÓN
+                if (activeTab === 'points') await createPoint(data);
+                else if (activeTab === 'routes') {
                     if (coordinatesLength < 2) return alert('Una ruta ocupa mínimo 2 puntos');
                     await createRouteLine(data);
                 } else if (activeTab === 'polygons') {
-                    if (coordinatesLength < 3) return alert('Un polígono ocupa mínimo 3 puntos para que cierre');
+                    if (coordinatesLength < 3) return alert('Un polígono ocupa mínimo 3 puntos');
                     await createPolygon(data);
                 }
                 alert('¡Guardado con éxito!');
             }
             
-            // Limpia el estado de edición y refresca la lista
-            editingItem = null;
+            editingItem = null; // Resetear modo edición
             if (onUpdate) await onUpdate();
             return true; 
         } catch (error) {
@@ -73,25 +115,21 @@
     }
 
     /**
-     * Inicia el modo de edición para un elemento.
+     * Activa el modo edición para un elemento específico
      */
     function handleEditItem(item) {
         editingItem = item;
     }
 
     /**
-     * Maneja la eliminación de registros.
-     * Esta función se pasa al componente 'SavedItemsList'.
+     * BORRADO: Elimina un registro del backend previo aviso al usuario
      */
     async function handleDelete(id) {
         if (!confirm('¿Seguro que lo quieres borrar?')) return;
-        
         try {
             if (activeTab === 'points') await deletePoint(id);
             else if (activeTab === 'routes') await deleteRouteLine(id);
             else if (activeTab === 'polygons') await deletePolygon(id);
-            
-            // Refresca la lista global
             if (onUpdate) await onUpdate();
         } catch (error) {
             alert('No se pudo borrar: ' + error.message);
@@ -99,23 +137,14 @@
     }
 
     /**
-     * Maneja la selección de un registro para centrar el mapa.
+     * Centrar mapa en el elemento seleccionado
      */
     function handleSelectItem(item) {
         if (!onSelect) return;
-        
-        if (activeTab === 'points') {
-            onSelect(item.lat, item.lng);
-        } else {
-            // Para rutas y polígonos, centramos en la primera coordenada disponible
-            const first = item.coordinates[0];
-            if (first) onSelect(first.lat, first.lng);
-        }
+        onSelect(item);
     }
 
-    /**
-     * Obtiene la lista de items que corresponde a la pestaña activa
-     */
+    // LISTA DERIVADA: Se actualiza automáticamente cuando cambia la pestaña o los datos
     const currentItems = $derived(
         activeTab === 'points' ? points : 
         activeTab === 'routes' ? routesLines : 
@@ -124,33 +153,43 @@
 </script>
 
 {#if open}
-    <!-- Menú Lateral -->
     <aside>
-        <!-- Botón para cerrar el menú -->
-        <button class="btn-close" onclick={()=>{open=false;}} title="Cerrar menú">
-            <XIcon />
-        </button>
-        
-        <!-- Logotipo y Nombre -->
-        <div class="brand">
-            <MapPinIcon class="brand-icon" />
-            <h1>GeoManager</h1>
+        <div class="top-header">
+            <div class="brand">
+                <MapPinIcon class="brand-icon" />
+                <h1>GeoManager</h1>
+            </div>
+
+            <!-- Botones de Acción Global -->
+            <div class="header-actions">
+                <input type="file" id="import-json" accept=".json" style="display: none;" onchange={handleImport} />
+                <button class="btn-download" onclick={() => document.getElementById('import-json').click()} title="Importar JSON">
+                    <Upload size={18} />
+                </button>
+                <button class="btn-download" onclick={downloadJSON} title="Exportar JSON">
+                    <Download size={18} />
+                </button>
+                <button class="btn-close" onclick={()=>{open=false;}} title="Cerrar menú">
+                    <XIcon size={20} />
+                </button>
+            </div>
         </div>
 
-        <!-- Navegación por pestañas (Puntos, Rutas, Polígonos) -->
+        <!-- Selector de Pestañas -->
         <TabNavigation bind:activeTab onTabChange={() => editingItem = null} />
 
-        <!-- Area de contenido con scroll -->
         <div class="content-scroll">
-            <!-- Formulario para crear o EDITAR registros -->
+            <!-- Formulario de Entrada de Datos -->
             <CreateForm 
                 {activeTab} 
                 onSubmit={handleSave}
+                onCancel={() => editingItem = null}
                 {editingItem}
                 {mapCoords}
+                {drawnPath}
             />
 
-            <!-- Lista de registros guardados -->
+            <!-- Listado de Elementos Guardados -->
             <SavedItemsList 
                 items={currentItems} 
                 {activeTab} 
@@ -162,13 +201,13 @@
         </div>
     </aside>
 {:else}
-    <!-- Botón flotante para reabrir el menú si está cerrado -->
     <button class="btn-open" onclick={()=>{open=true;}} title="Abrir GeoManager">
         <Menu />
     </button>
 {/if}
 
 <style>
+  /* Los estilos permanecen iguales para mantener la estética premium */
   aside {
     position: absolute;
     top: 10px;
@@ -186,259 +225,39 @@
     animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .brand {
-    padding: 30px 20px 20px;
+  .top-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-  }
-
-  :global(.brand-icon) {
-    color: #ef4444;
-    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
-  }
-
-  h1 {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 0;
-    color: #1e293b;
-    letter-spacing: -0.5px;
-  }
-
-  .tabs {
-    display: flex;
-    padding: 0 15px;
-    gap: 5px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .tabs button {
-    flex: 1;
-    padding: 12px 5px;
-    border: none;
-    background: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-  }
-
-  .tabs button.active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
-  }
-
-  .content-scroll {
-    flex: 1;
-    overflow-y: auto;
+    justify-content: space-between;
     padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
   }
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    color: #1e293b;
-  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
 
-  h2 {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0;
-  }
-
-  .mock-form {
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 30px;
-    border: 1px solid #e2e8f0;
-  }
-
-   input, textarea {
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 14px;
-    background: white;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .coords-row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-  }
-
-   .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .input-group label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    padding-left: 4px;
-  }
-
-  .btn-add-circle {
-    background: #3b82f6;
-    color: white;
+  .btn-download {
+    background: #f1f5f9;
     border: none;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
+    color: #64748b;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    flex-shrink: 0;
   }
 
-  .btn-add-circle:hover {
-    background: #2563eb;
-    transform: scale(1.05);
-  }
+  .btn-download:hover { background: #3b82f6; color: white; transform: translateY(-2px); }
+  .btn-close { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 5px; }
+  .btn-close:hover { color: #ef4444; }
 
-  .coords-list {
-    margin-top: 10px;
-    max-height: 120px;
-    overflow-y: auto;
-    padding-right: 5px;
-  }
+  :global(.brand-icon) { color: #ef4444; filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3)); }
+  h1 { font-size: 22px; font-weight: 800; margin: 0; color: #1e293b; letter-spacing: -0.5px; }
 
-  .btn-submit {
-    background: #1e293b;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 5px;
-  }
-
-  .search-box {
-    position: relative;
-    margin-bottom: 15px;
-  }
-
-  .search-box :global(svg) {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-  }
-
-  .search-box input {
-    width: 100%;
-    padding-left: 35px;
-    background: #f1f5f9;
-    border: none;
-    box-sizing: border-box;
-  }
-
-  .mock-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .list-item {
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s;
-    cursor: pointer;
-  }
-
-  .list-item:hover {
-    background: #f8fafc;
-  }
-
-  .item-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .item-info strong {
-    font-size: 14px;
-    color: #1e293b;
-  }
-
-  .item-info span {
-    font-size: 11px;
-    color: #94a3b8;
-  }
-
-  .list-item.inactive {
-    opacity: 0.5;
-    background: #f1f5f9;
-  }
-
-  .loading-text, .empty-text {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 14px;
-    padding: 20px;
-  }
-
-  .btn-remove-coord {
-    background: none;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 5px;
-    padding: 0 4px;
-  }
-
-  .item-actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-
-  .item-actions button:hover {
-    background: #fee2e2;
-    color: #ef4444;
-  }
-
-  .btn-close {
-    position: absolute;
-    right: 15px;
-    top: 15px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-  }
+  .content-scroll { flex: 1; overflow-y: auto; padding: 20px; }
 
   .btn-open {
     position: absolute;

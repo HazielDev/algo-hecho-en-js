@@ -16,12 +16,13 @@ export async function getPolygons() {
 
 export async function createPolygon(polygonData) {
   try {
+    const { id, active, ...rest } = polygonData; // Excluir id y active
     const response = await fetch(`${API_URL}/polygons`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(polygonData)
+      body: JSON.stringify(rest)
     })
     if (!response.ok) {
       throw new Error('Error al crear el polígono')

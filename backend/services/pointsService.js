@@ -1,41 +1,51 @@
-class pointsService {
+class PointsService {
   constructor(points) {
     this.points = points;
   }
 
-  getAll() {
+  /**
+   * Devuelve el arreglo de puntos.
+   */
+  async find() {
     return this.points;
   }
 
-  create(name, description, lat, lng) {
-    const new_point = {
+  /**
+   * Inserta un nuevo punto asignándole un ID único basado en el tamaño del arreglo.
+   */
+  async create(data) {
+    const newPoint = {
       id: this.points.length + 1,
-      name,
-      description,
-      lat,
-      lng,
+      ...data,
       active: true
-    }
-    this.points.push(new_point)
+    };
+    this.points.push(newPoint);
+    return newPoint;
   }
 
-  update(id, name, description, lat, lng) {
+  /**
+   * Actualiza un punto existente mediante su ID.
+   */
+  async update(id, changes) {
     const index = this.points.findIndex(item => item.id == id);
-    if (index == -1) return null;
+    if (index === -1) throw new Error('Punto no encontrado');
+    
     const point = this.points[index];
-    point.name = name ?? point.name;
-    point.description = description ?? point.description;
-    point.lat = lat ?? point.lat;
-    point.lng = lng ?? point.lng;
-    return point;
+    this.points[index] = { ...point, ...changes };
+    return this.points[index];
   }
 
-  delete(id) {
+  /**
+   * Elimina un punto del arreglo basándose en su ID.
+   */
+  async delete(id) {
     const index = this.points.findIndex(item => item.id == id);
-    if (index == -1) return null;
-    this.points[index].active = !this.points[index].active;
+    if (index === -1) throw new Error('Punto no encontrado');
+    
+    this.points[index].active = false;
     return this.points[index];
   }
 }
 
-module.exports = pointsService;
+module.exports = PointsService;
+

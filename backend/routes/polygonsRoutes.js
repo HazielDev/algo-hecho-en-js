@@ -67,10 +67,8 @@ router.get('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the polygon
  *               coordinates:
  *                 type: array
- *                 description: The coordinates of the polygon
  *                 items:
  *                   type: object
  *                   properties:
@@ -78,27 +76,13 @@ router.get('/', (req, res) => {
  *                       type: number
  *                     lng:
  *                       type: number
- *             example:
- *               name: "Nuevo Polígono"
- *               coordinates:
- *                 - lat: 21.1211
- *                   lng: -101.6830
- *                 - lat: 21.1212
- *                   lng: -101.6831
- *                 - lat: 21.1213
- *                   lng: -101.6832
+ *               category:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Polygon created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       400:
- *         description: Not enough coordinates to form a polygon (needs at least 3)
+ *         description: Bad Request - Requires at least 3 coordinates
  *         content:
  *           application/json:
  *             schema:
@@ -113,7 +97,7 @@ router.get('/', (req, res) => {
  * Valida que tenga al menos 3 coordenadas.
  */
 router.post('/', (req, res) => {
-  const { name, coordinates } = req.body;
+  const { coordinates } = req.body;
 
   if (!coordinates || coordinates.length < 3) {
     return res.status(400).json({ 
@@ -121,8 +105,8 @@ router.post('/', (req, res) => {
     });
   }
 
-  service.create(name, coordinates);
-  res.status(201).json({ message: 'Polígono creado exitosamente' });
+  const newPolygon = service.create(req.body);
+  res.status(201).json(newPolygon);
 })
 
 /**
@@ -134,10 +118,7 @@ router.post('/', (req, res) => {
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
  *         required: true
- *         description: The ID of the polygon to update
  *     requestBody:
  *       required: true
  *       content:
@@ -147,10 +128,8 @@ router.post('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the polygon
  *               coordinates:
  *                 type: array
- *                 description: The coordinates of the polygon
  *                 items:
  *                   type: object
  *                   properties:
@@ -158,36 +137,13 @@ router.post('/', (req, res) => {
  *                       type: number
  *                     lng:
  *                       type: number
- *             example:
- *               name: "Polígono Actualizado"
- *               coordinates:
- *                 - lat: 21.1211
- *                   lng: -101.6830
- *                 - lat: 21.1212
- *                   lng: -101.6831
- *                 - lat: 21.1213
- *                   lng: -101.6832
+ *               category:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Polygon updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       400:
- *         description: Not enough coordinates to form a polygon (needs at least 3)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       404:
- *         description: Polygon not found
+ *         description: Bad Request - Requires at least 3 coordinates
  *         content:
  *           application/json:
  *             schema:
@@ -202,7 +158,7 @@ router.post('/', (req, res) => {
  */
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
-  const { name, coordinates } = req.body;
+  const { coordinates } = req.body;
 
   if (coordinates !== undefined && coordinates.length < 3) {
     return res.status(400).json({ 
@@ -210,9 +166,9 @@ router.patch('/:id', (req, res) => {
     });
   }
 
-  const polygon = service.update(id, name, coordinates);
+  const polygon = service.update(id, req.body);
   if (polygon) {
-    res.status(200).json({ message: 'Polígono actualizado' });
+    res.status(200).json(polygon);
   } else {
     res.status(404).json({ message: 'Polígono no encontrado' });
   }
@@ -259,9 +215,9 @@ router.delete('/:id', (req, res) => {
   const { id } = req.params;
   const polygon = service.delete(id);
   if (polygon) {
-    res.status(200).json({ message: 'Polígono eliminado' });
+    res.status(200).json({ message: 'Polygon deleted successfully' });
   } else {
-    res.status(404).json({ message: 'Polígono no encontrado' });
+    res.status(404).json({ message: 'Polygon not found' });
   }
 })
 

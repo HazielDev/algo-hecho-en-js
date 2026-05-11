@@ -1,23 +1,23 @@
-const express = require("express")
-
-// Importación de datos y servicio
-const data = require("../data/data")
-const pointsService = require("../services/pointsService");
+/**
+ * pointsRoutes.js: Definición de endpoints para el recurso "Points".
+ * Utiliza el patrón Router de Express para organizar las peticiones.
+ */
+const express = require('express');
+const PointsService = require('../services/pointsService');
+const data = require('../data/data');
 
 const router = express.Router();
-
-// Inicialización del servicio con los datos actuales
-const service = new pointsService(data.points);
+const service = new PointsService(data.points);
 
 /**
  * @swagger
  * /points:
  *   get:
  *     tags: [Points]
- *     summary: Get all points
+ *     summary: Obtiene todos los puntos
  *     responses:
  *       200:
- *         description: A list of points
+ *         description: Lista de puntos
  *         content:
  *           application/json:
  *             schema:
@@ -27,38 +27,34 @@ const service = new pointsService(data.points);
  *                 properties:
  *                   id:
  *                     type: integer
- *                     description: The ID of the point
  *                   name:
  *                     type: string
- *                     description: The name of the point
  *                   description:
  *                     type: string
- *                     description: The description of the point
  *                   lat:
  *                     type: number
- *                     description: The latitude of the point
  *                   lng:
  *                     type: number
- *                     description: The longitude of the point
  *                   active:
  *                     type: boolean
- *                     description: The active status of the point
+ *                   category:
+ *                     type: string
  */
-
-/**
- * Ruta para obtener todos los puntos guardados
- */
-router.get('/', (req, res) => {
-  const points = service.getAll();
-  res.status(200).json(points);
-})
+router.get('/', async (req, res, next) => {
+  try {
+    const points = await service.find();
+    res.json(points);
+  } catch (error) {
+    next(error); // Delega al middleware de error
+  }
+});
 
 /**
  * @swagger
  * /points:
  *   post:
  *     tags: [Points]
- *     summary: Create a new point
+ *     summary: Crea un nuevo punto
  *     requestBody:
  *       required: true
  *       content:
@@ -68,42 +64,40 @@ router.get('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the point
  *               description:
  *                 type: string
- *                 description: The description of the point
  *               lat:
  *                 type: number
- *                 description: The latitude of the point
  *               lng:
  *                 type: number
- *                 description: The longitude of the point
+ *               category:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Point created successfully
+ *         description: Punto creado exitosamente
  */
-/**
- * Ruta para crear un nuevo punto
- */
-router.post('/', (req, res) => {
-  const { name, description, lat, lng } = req.body;
-  service.create(name, description, lat, lng);
-  res.status(201).json({ message: 'Punto creado exitosamente' });
-})
+router.post('/', async (req, res, next) => {
+  try {
+    const body = req.body;
+    const newPoint = await service.create(body);
+    res.status(201).json(newPoint);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
  * /points/{id}:
  *   patch:
  *     tags: [Points]
- *     summary: Update a point
+ *     summary: Actualiza un punto por ID
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: The ID of the point to update
  *     requestBody:
  *       required: true
  *       content:
@@ -113,66 +107,74 @@ router.post('/', (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the point
  *               description:
  *                 type: string
- *                 description: The description of the point
  *               lat:
  *                 type: number
- *                 description: The latitude of the point
  *               lng:
  *                 type: number
- *                 description: The longitude of the point
+ *               category:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Point updated successfully
- *       404:
- *         description: Point not found
+ *         description: Punto actualizado exitosamente
  */
-/**
- * Ruta para actualizar un punto existente por su ID
- */
-router.patch('/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, description, lat, lng } = req.body;
-  const point = service.update(id, name, description, lat, lng);
-  if (point) {
-    res.status(200).json({ message: 'Punto actualizado' });
-  } else {
-    res.status(404).json({ message: 'Punto no encontrado' });
+router.patch('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const body = req.body;
+    const point = await service.update(id, body);
+    res.json(point);
+  } catch (error) {
+    next(error);
   }
-})
+});
 
 /**
  * @swagger
  * /points/{id}:
  *   delete:
  *     tags: [Points]
- *     summary: Delete a point
+ *     summary: Elimina un punto por ID
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: The ID of the point to delete
  *     responses:
  *       200:
  *         description: Point deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       404:
  *         description: Point not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
-/**
- * Ruta para eliminar un punto por su ID
- */
-router.delete('/:id', (req, res) => {
-  const { id } = req.params;
-  const point = service.delete(id);
-  if (point) {
-    res.status(200).json({ message: 'Punto eliminado' });
-  } else {
-    res.status(404).json({ message: 'Punto no encontrado' });
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const point = await service.delete(id);
+    if (point) {
+      res.status(200).json({ message: 'Point deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Point not found' });
+    }
+  } catch (error) {
+    next(error);
   }
-})
+});
+
 
 module.exports = router;
