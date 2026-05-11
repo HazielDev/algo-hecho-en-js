@@ -7,29 +7,28 @@ class routesLinesService {
     return this.routesLines;
   }
 
-  create(name, coordinates) {
+  create(data) {
     const newRoute = {
       id: this.routesLines.length + 1,
-      name,
-      coordinates,
+      ...data,
       active: true
     }
     this.routesLines.push(newRoute);
+    return newRoute;
   }
 
-  update(id, name, coordinates) {
+  update(id, changes) {
     const index = this.routesLines.findIndex(item => item.id == id);
     if (index == -1) return null;
     const route = this.routesLines[index];
-    route.name = name ?? route.name;
-    route.coordinates = coordinates ?? route.coordinates;
-    return route;
+    this.routesLines[index] = { ...route, ...changes };
+    return this.routesLines[index];
   }
 
   delete(id) {
     const index = this.routesLines.findIndex(item => item.id == id);
     if (index == -1) return null;
-    this.routesLines[index].active = !this.routesLines[index].active;
+    this.routesLines[index].active = false;
     return this.routesLines[index];
   }
 }

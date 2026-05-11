@@ -2,7 +2,7 @@ import { API_URL } from "./config";
 
 export async function getRoutesLines() {
   try {
-    const response = await fetch(`${API_URL}/routes-lines`)
+    const response = await fetch(`${API_URL}/routes_lines`)
     if (!response.ok) {
       throw new Error('Error al obtener las rutas')
     }
@@ -16,12 +16,13 @@ export async function getRoutesLines() {
 
 export async function createRouteLine(routeData) {
   try {
-    const response = await fetch(`${API_URL}/routes-lines`, {
+    const { id, active, ...rest } = routeData; // Excluir id y active
+    const response = await fetch(`${API_URL}/routes_lines`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(routeData)
+      body: JSON.stringify(rest)
     })
     if (!response.ok) {
       throw new Error('Error al crear la ruta')
@@ -35,7 +36,7 @@ export async function createRouteLine(routeData) {
 
 export async function updateRouteLine(id, routeData) {
   try {
-    const response = await fetch(`${API_URL}/routes-lines/${id}`, {
+    const response = await fetch(`${API_URL}/routes_lines/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -54,7 +55,7 @@ export async function updateRouteLine(id, routeData) {
 
 export async function deleteRouteLine(id) {
   try {
-    const response = await fetch(`${API_URL}/routes-lines/${id}`, {
+    const response = await fetch(`${API_URL}/routes_lines/${id}`, {
       method: 'DELETE'
     })
     if (!response.ok) {
