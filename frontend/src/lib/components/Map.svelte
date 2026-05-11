@@ -1,6 +1,11 @@
 <script lang="ts">
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
+  
+  // IMPORTACIÓN DE CLUSTERING (TEMA NUEVO)
+  import 'leaflet.markercluster';
+  import 'leaflet.markercluster/dist/MarkerCluster.css';
+  import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
   /**
    * Props recibidas:
@@ -22,7 +27,25 @@
 
   let mapContainer: any;
   let mapInstance: any = null;
-  let layers: L.LayerGroup = L.layerGroup(); // Grupo de capas para limpiar/dibujar fácilmente
+  let layers: L.LayerGroup = L.layerGroup(); 
+  
+  // Grupo para el agrupamiento de marcadores (Clustering)
+  let markerClusterGroup: any = null;
+
+  /**
+   * TEMA NUEVO: ICONOS PERSONALIZADOS (L.divIcon)
+   */
+  const customMarkerIcon = L.divIcon({
+    html: `
+      <div class="custom-pin">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-icon lucide-circle"><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+    `,
+    className: 'custom-div-icon', 
+    iconSize: [32, 32],           
+    iconAnchor: [16, 32],         
+    popupAnchor: [0, -32]         
+  });
 
   /**
    * Efecto de inicialización del mapa (Se ejecuta una vez al montar)
@@ -30,31 +53,30 @@
   $effect(() => {
     if (!mapContainer) return;
 
-    // Crear la instancia de Leaflet
     mapInstance = L.map(mapContainer).setView(center, zoom);
 
-    // Agregar capa de OpenStreetMap (el mapa base)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap'
     }).addTo(mapInstance);
 
-    // Inicializar el grupo de capas donde dibujaremos nuestros objetos
+    // Inicializamos el grupo de clusters
+    markerClusterGroup = (L as any).markerClusterGroup({
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        spiderfyOnMaxZoom: true
+    });
+    mapInstance.addLayer(markerClusterGroup);
+
     layers.addTo(mapInstance);
 
-    /**
-     * Click Normal (Izquierdo):
-     * Captura las coordenadas y las manda al componente padre (AsideMenu)
-     */
+    // Captura de clicks para el formulario
     mapInstance.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
         if (onMapClick) onMapClick(lat, lng);
     });
 
-    /**
-     * Funcionalidad de Click Derecho:
-     * Muestra un popup con las coordenadas del punto clickeado.
-     */
+    // Click derecho para info rápida
     mapInstance.on('contextmenu', (e: any) => {
       const { lat, lng } = e.latlng;
       L.popup()
@@ -63,12 +85,10 @@
         .openOn(mapInstance);
     });
 
-    // Pequeño delay para asegurar que Leaflet calcule bien el tamaño del contenedor
     setTimeout(() => {
       if (mapInstance) mapInstance.invalidateSize();
     }, 200);
 
-    // Cleanup: Destruir el mapa al desmontar el componente
     return () => {
       if (mapInstance) {
         mapInstance.remove();
@@ -78,8 +98,7 @@
   });
 
   /**
-   * Efecto de Re-centrado reactivo:
-   * Cuando el prop 'target' cambia desde el padre, movemos la cámara.
+   * Efecto de Re-centrado reactivo
    */
   $effect(() => {
     if (mapInstance && target) {
@@ -88,45 +107,51 @@
   });
 
   /**
-   * Efecto de Renderizado de Capas:
-   * Se ejecuta cada vez que las listas de datos (points, polygons, etc.) cambian.
+   * Efecto de Renderizado de Capas
    */
   $effect(() => {
-    if (!mapInstance) return;
+    if (!mapInstance || !markerClusterGroup) return;
     
-    // Limpiar capas anteriores antes de redibujar
+    // Limpiar tanto el grupo de capas normales como el de clusters
     layers.clearLayers();
+    markerClusterGroup.clearLayers();
 
-    // 1. Dibujar Puntos (solo los activos)
+    // 1. Dibujar Puntos (Usando el CLUSTERING)
     points.filter(p => p.active).forEach(point => {
-      L.marker([point.lat, point.lng])
+      const marker = L.marker([point.lat, point.lng], { icon: customMarkerIcon })
         .bindPopup(`
-            <b>${point.name}</b><br>
-            ${point.description}<br>
-            <hr style="margin: 5px 0">
-            <small><b>Lat:</b> ${point.lat.toFixed(5)}<br><b>Lng:</b> ${point.lng.toFixed(5)}</small>
-        `)
-        .addTo(layers);
+            <div class="popup-content">
+              <strong>${point.name}</strong>
+              <p>${point.description}</p>
+              <div class="popup-coords">
+                ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}
+              </div>
+            </div>
+        `);
+      
+      // Agregamos el marcador al grupo de CLUSTERS en lugar de directamente al mapa
+      markerClusterGroup.addLayer(marker);
     });
 
-    // 2. Dibujar Rutas (Líneas poligonales)
+    // 2. Dibujar Rutas
     routesLines.filter(r => r.active).forEach(route => {
       L.polyline(route.coordinates.map(c => [c.lat, c.lng]), { 
         color: '#3b82f6', 
-        weight: 5,
-        opacity: 0.8
+        weight: 6,
+        opacity: 0.7,
+        lineJoin: 'round'
       })
       .bindPopup(`<b>Ruta:</b> ${route.name}`)
       .addTo(layers);
     });
 
-    // 3. Dibujar Polígonos (Áreas cerradas)
+    // 3. Dibujar Polígonos
     polygons.filter(p => p.active).forEach(poly => {
       L.polygon(poly.coordinates.map(c => [c.lat, c.lng]), { 
-        color: '#ef4444', 
-        fillColor: '#ef4444', 
-        fillOpacity: 0.3,
-        weight: 2
+        color: '#f43f5e', 
+        fillColor: '#f43f5e', 
+        fillOpacity: 0.2,
+        weight: 3
       })
       .bindPopup(`<b>Polígono:</b> ${poly.name}`)
       .addTo(layers);
@@ -152,19 +177,67 @@
     height: 100%;
     min-height: 400px;
     z-index: 1;
-    background: #f1f5f9; /* Color de fondo mientras cargan los tiles */
+    background: #f1f5f9;
   }
 
-  /* Estilos para los popups de Leaflet */
+  /**
+   * ESTILOS PARA EL ÍCONO PERSONALIZADO
+   */
+  :global(.custom-pin) {
+    background: #3b82f6; 
+    width: 32px;
+    height: 32px;
+    border-radius: 50% 50% 50% 0; 
+    transform: rotate(-45deg);    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;                 
+    border: 2px solid white;      
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+  }
+
+  :global(.custom-pin svg) {
+    transform: rotate(45deg); 
+  }
+
+  :global(.custom-pin:hover) {
+    background: #1d4ed8;
+    transform: rotate(-45deg) scale(1.1); 
+  }
+
+  /* Estilos mejorados para los popups */
+  :global(.popup-content) {
+    padding: 5px;
+    min-width: 120px;
+  }
+
+  :global(.popup-content strong) {
+    display: block;
+    font-size: 14px;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+
+  :global(.popup-content p) {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  :global(.popup-coords) {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    font-family: monospace;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
   :global(.leaflet-popup-content-wrapper) {
     border-radius: 12px;
-    padding: 5px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  }
-
-  :global(.leaflet-popup-content) {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
+    padding: 0;
+    overflow: hidden;
   }
 </style>
